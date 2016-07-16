@@ -19,10 +19,10 @@ Lists can be nested within lists, just as in the standard DokuWiki syntax.
   :  description list item
 ```
 
-Ordered list also starts with actual number followed with period and space (`". "`):
+Ordered list also starts with actual number followed by period and space (`". "`):
 
 ```
-    100. start hundred
+    100. start from hundred
     105. skip 101 to 104
 ```
 
