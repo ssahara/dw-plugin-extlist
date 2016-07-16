@@ -2,10 +2,10 @@ Extended List for DokuWiki
 ==========================
 
 This plugin extends DokuWiki's list markup syntax to allow:  
- 1) html5 description lists, as well as ordered/unordered lists  
- 2) start any number of an ordered list and give any number for member items  
- 3) break long item into multiple lines indented by at least two spaces  
- 4) class attribute for lists block  
+ &ensp;1) html5 description lists, as well as ordered/unordered lists  
+ &ensp;2) start any number of an ordered list and give any number for member items  
+ &ensp;3) break long item into multiple lines indented by at least two spaces  
+ &ensp;4) class attribute for lists block  
 
 Lists can be nested within lists, just as in the standard DokuWiki syntax.
 
@@ -22,7 +22,7 @@ Lists can be nested within lists, just as in the standard DokuWiki syntax.
 Ordered list also starts with actual number followed with period and space (`". "`):
 
 ```
-    100. start handred
+    100. start hundred
     105. skip 101 to 104
 ```
 
