@@ -1,0 +1,235 @@
+/**
+ * DokuWiki Plugin ExtList; sample all.less
+ * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
+ */
+
+/* --------------------------------------------------------
+ * Hierarchical ordered list
+ * modified from 
+ * Nested numbered list with correct indentation
+ * https://gist.github.com/jirutka/32049196ab75547b7f47
+ * --------------------------------------------------------
+ */
+ol.hierarchical {
+  list-style-type: none;
+  counter-reset: item;
+  margin: 0;
+  padding: 0;
+  & > li {
+    display: table;
+    counter-increment: item;
+    margin-bottom: 0.6em;
+  }
+  & > li::before {
+    content: counters(item, ".") ". ";
+    display: table-cell;
+    padding-right: 0.6em;
+  }
+  //## ExtList plugin
+  & > li[data-marker]::before {
+    content: attr(data-marker);
+    color: #696969;
+    font-weight: bold;
+  }
+}
+li {
+  ol.hierarchical {
+    & > li {
+      margin: 0;
+    }
+    & > li::before {
+      content: counters(item, ".") " ";
+    }
+    //## ExtList plugin
+    & > li[data-marker]::before {
+      content: attr(data-marker);
+      color: #808080;
+      font-weight: bold;
+    }
+  }
+}
+
+/* --------------------------------------------------------
+ *  Unordered list
+ * --------------------------------------------------------
+ */
+ul.extlist.check,
+ul.extlist.circle,
+ul.extlist.disc,
+ul.extlist.square,
+ul.extlist.dash,
+ul.extlist.heart {
+  li {
+    position: relative;
+    list-style-type:none !important;
+    list-style-image:none !important;
+  }
+}
+/* prevent list marks when <WRAP tabs> */
+.tabs ul.extlist li::before {
+  display: none;
+}
+
+/* Check Marker */
+dl.check > dd::before,
+ul.check > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 8px;
+  height: 3px;
+  border-left: 3px solid #aaa;
+  border-bottom: 3px solid #aaa;
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
+/* Circle Marker */
+dl.circle > dd::before,
+ul.circle > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #666;
+  border-radius: 100%;
+}
+
+/* Disc Marker */
+dl.disc > dd::before,
+ul.disc > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 5px;
+  height: 5px;
+  background-color: #666;
+  border-radius: 5px;
+}
+
+/* Square Marker */
+dl.square > dd::before,
+ul.square > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 5px;
+  height: 5px;
+  background-color: #666;
+}
+
+/* Dash Marker */
+dl.dash > dd::before,
+ul.dash > li::before {
+  display: block;
+  content: '—'; // U+2014 em dash
+  position: absolute;
+  left: -1.2em;
+  color: #3d3d5c;
+}
+
+/* Unordered list - Heart */
+ul.extlist.heart > li {
+  display: table;
+  margin-left: -0.1em;
+}
+ul.heart > li::before {
+  display: table-cell;
+  font-size: 150%;
+  content: '❤';  // U+2764 Heavy Black Heart
+  color: #FFB6C1; // lightpink
+  padding-right: .2em;
+}
+
+
+/* --------------------------------------------------------
+ *  Description list - generic
+ * --------------------------------------------------------
+ */
+div.wrap_box {
+  dl.generic {
+    border-bottom: none !important;
+    >dt:first-child {
+      border-top: none !important;
+    }
+  }
+}
+dl.generic {
+  margin: 0.4em 0;
+  padding: 1px 0 0.5em 0;
+  border-bottom: 1px dotted #bbb;
+  &:after {
+    content: "";
+    display: block;
+    clear: left;
+    height: 0;
+    visibility: hidden;
+  }
+  dd {
+    position: relative;
+    margin-left: 10.6em;
+    margin-top: 0.5em;
+    // background-color: rgba(0,0,255,0.1);
+  }
+  dt {
+    position: relative;
+    margin-top: 0.5em;
+    font-weight: normal;
+    text-shadow: 1px 1px 3px rgba(0,0,0,.2);
+    &:not(.compact) {
+      padding-top: 0.5em;
+      padding-left: 0.2em;
+      // background-color: rgba(255,0,0,0.1);
+
+      &:after {
+        display: block;
+        position: absolute;
+        content: "◸";
+        top: 0em;
+        left: -0.5em;
+        color: #bbb;
+        font-size: x-small;
+      }
+
+    }
+    &:first-child {
+      border-top: 1px dotted #bbb;
+    }
+  }
+  dt.compact {
+    span {
+      display: inline-block;
+      position: relative;
+      margin-top: 0.5em;
+      padding-left: 0.2em;
+      // background-color: rgba(255,0,0,0.1);
+      clear: left;
+      float: left;
+      max-width: 9em;
+
+      &::after {
+        display: block;
+        position: absolute;
+        content: "◸";
+        top: 0em;
+        left: -0.5em;
+        color: #bbb;
+        font-size: x-small;
+      }
+
+    }
+  }
+  dd+dt {
+    border-top: 1px dotted #bbb;
+  }
+}
+
