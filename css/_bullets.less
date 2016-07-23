@@ -1,0 +1,106 @@
+/**
+ * DokuWiki Plugin ExtList; _bullets.less
+ * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
+ */
+
+/* --------------------------------------------------------
+ *  Unordered list
+ * --------------------------------------------------------
+ */
+ul.extlist.check,
+ul.extlist.circle,
+ul.extlist.disc,
+ul.extlist.square,
+ul.extlist.dash,
+ul.extlist.heart {
+  li {
+    position: relative;
+    list-style-type:none !important;
+    list-style-image:none !important;
+  }
+}
+/* prevent list marks when <WRAP tabs> */
+.tabs ul.extlist li::before {
+  display: none;
+}
+
+/* Check Marker */
+dl.check > dd::before,
+ul.check > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 8px;
+  height: 3px;
+  border-left: 3px solid #aaa;
+  border-bottom: 3px solid #aaa;
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
+/* Circle Marker */
+dl.circle > dd::before,
+ul.circle > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #666;
+  border-radius: 100%;
+}
+
+/* Disc Marker */
+dl.disc > dd::before,
+ul.disc > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 5px;
+  height: 5px;
+  background-color: #666;
+  border-radius: 5px;
+}
+
+/* Square Marker */
+dl.square > dd::before,
+ul.square > li::before {
+  display: block;
+  content: '';
+  position: absolute;
+  top: .5em;
+  left: -1em;
+  width: 5px;
+  height: 5px;
+  background-color: #666;
+}
+
+/* Dash Marker */
+dl.dash > dd::before,
+ul.dash > li::before {
+  display: block;
+  content: '—'; // U+2014 em dash
+  position: absolute;
+  left: -1.2em;
+  color: #3d3d5c;
+}
+
+/* Unordered list - Heart */
+ul.extlist.heart > li {
+  display: table;
+  margin-left: -0.1em;
+}
+ul.heart > li::before {
+  display: table-cell;
+  font-size: 150%;
+  content: '❤';  // U+2764 Heavy Black Heart
+  color: #FFB6C1; // lightpink
+  padding-right: .2em;
+}
+
