@@ -1,0 +1,116 @@
+/**
+ * DokuWiki Plugin ExtList; _numbering.less
+ * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
+ */
+
+/* --------------------------------------------------------
+ * Hierarchical ordered list
+ * modified from 
+ * Nested numbered list with correct indentation
+ * https://gist.github.com/jirutka/32049196ab75547b7f47
+ * --------------------------------------------------------
+ */
+ol.hierarchical {
+  list-style-type: none;
+  counter-reset: item;
+  margin-left: 0;
+  padding: 0;
+  & > li {
+    display: table;
+    counter-increment: item;
+    margin-bottom: 0.6em;
+  }
+  & > li::before {
+    content: counters(item, ".") ". ";
+    display: table-cell;
+    padding-right: 0.6em;
+  }
+  //## ExtList plugin
+  & > li[data-marker]::before {
+    content: attr(data-marker);
+    color: #696969;
+    font-weight: bold;
+  }
+}
+li {
+  ol.hierarchical {
+    & > li {
+      margin: 0;
+    }
+    & > li::before {
+      content: counters(item, ".") " ";
+    }
+    //## ExtList plugin
+    & > li[data-marker]::before {
+      content: attr(data-marker);
+      color: #808080;
+      font-weight: bold;
+    }
+  }
+}
+
+/* --------------------------------------------------------
+ * Parenthesized latin small letters: ⒜ ⒝ ⒞
+ * --------------------------------------------------------
+ */
+ol.alphabet {
+  list-style-type: none;
+  & > li {
+    position: relative;
+  }
+  & > li[data-marker]::before {
+    content: attr(data-marker);
+    position: absolute;
+    top: 0;
+    left: -1.5em;
+    font-weight: bold;
+  }
+}
+
+/* --------------------------------------------------------
+ * Parenthesized number: (1) (2) (3)
+ * --------------------------------------------------------
+ */
+ol.number {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+  & > li {
+    display: table;
+  }
+  & > li[value]::before {
+    content: "(" attr(value) ")";
+    display: table-cell;
+    padding-right: 0.6em;
+    color: #696969;
+  }
+}
+
+/* --------------------------------------------------------
+ * List-style-type variation
+ * --------------------------------------------------------
+ */
+
+ol.Alpha {
+  list-style-type: upper-alpha;
+}
+
+ol.counter {
+  counter-reset: li;
+  & > li {
+    list-style-type: none;
+    counter-increment: li;
+    // border: 1px solid pink;
+    position: relative;
+  }
+  & > li::before {
+    display: marker;
+    content: "(" counter(li) ") ";
+    position: absolute;
+    top: 0;
+    left: -2em;
+    margin-right: .5em;
+    font-family: Consolas, monospace;
+  }
+}
+

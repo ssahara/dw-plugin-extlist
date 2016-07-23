@@ -143,10 +143,21 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     }
 
     /**
-     * create marker for hierarchical/nested ordered lists
-     * eg. 10. | 2.1 | 3.2.9
+     * create marker for ordered list items
      */
     private function olist_marker($level) {
+
+        $num = $this->olist_info[$level];
+        //error_log('olist lv='.$level.' list_class='.$this->list_class['ol'].' num='.$num);
+
+        // Parenthesized latin small letter marker: ⒜,⒝,⒞, … ,⒵
+        if (strpos($this->list_class['ol'], 'alphabet') !== false){
+            $modulus = ($num -1) % 26;
+            $marker = '&#'.(9372 + $modulus).';';
+            return $marker;
+        }
+
+        // Hierarchical numbering (default): eg. 1. | 2.1 | 3.2.9
         $marker = $this->olist_info[1];
         if ($level == 1) {
             return $marker.'.';
