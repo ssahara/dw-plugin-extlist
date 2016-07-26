@@ -17,6 +17,8 @@ Lists can be nested within lists, just as in the standard DokuWiki syntax.
   ;  description list term, compacted/reduced column width
   ;; description list term, column width is NOT reduced
   :  description list item
+
+  ; term  : need two spaces before ":" when writing dt/dd pair in one line
 ```
 
 Ordered list also starts with actual number followed by period and space (`". "`):

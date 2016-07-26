@@ -69,6 +69,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     function postConnect() {
         // subsequent list item
         $this->Lexer->addPattern($this->match_pattern, $this->mode);
+        $this->Lexer->addPattern('  ::? ', $this->mode);  // dt and dd in one line
 
         // continued list item content, indented by at least two spaces
         $this->Lexer->addPattern($this->extra_pattern, $this->mode);
@@ -361,6 +362,11 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
             // retrieve previous list item from stack
             $m0 = array_pop($this->stack);
             $m1 = $this->interpret($match);
+
+            // set m1 depth if dt and dd are in one line
+            if (($m1['depth'] == 0) && ($m0['item'] == 'dt')) {
+                $m1['depth'] = $m0['depth'];
+            }
 
             // continued list item content, indented by at least two spaces
             if (empty($m1['mk']) && ($m1['depth'] > 0)) {
