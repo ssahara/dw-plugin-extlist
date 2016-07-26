@@ -4,4 +4,4 @@ email   sahara.satoshi@gmail.com
 date    2016-07-26
 name    Extended List syntax
 desc    Extend writing style of lists: a) treat consecutive indented lines of text as one list item, b) ordered list with starting number, c) description list as well as ordered/unordered list.
-url     https://github.com/ssahara/dw-plugin-extlist
+url     https://www.dokuwiki.org/plugin:extlist

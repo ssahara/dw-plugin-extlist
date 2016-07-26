@@ -410,6 +410,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
 
                 $m0 = array_pop($this->stack);
             }
+
+            // Break out of switch structure if end of list block
             if ($state == DOKU_LEXER_EXIT) {
                 break;
             }
