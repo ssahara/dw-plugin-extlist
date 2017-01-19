@@ -58,6 +58,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
         return array('formatting', 'substition', 'disabled', 'protected');
     }
 
+    /**
+     * Connect pattern to lexer
+     */
     function connectTo($mode) {
         $this->Lexer->addEntryPattern('[ \t]*'.$this->entry_pattern, $mode, $this->mode);
 
