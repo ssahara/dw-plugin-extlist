@@ -246,7 +246,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         $class = rtrim($class);
         $attr.= !empty($attr) ? ' ' : '';
         $attr.= ' class="'.$class.'"';
-        $this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
+      //$this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_ENTER, $tag, $attr);
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -258,7 +260,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         if ($tag == 'ol') {
             $this->olist_level--; // reduce olist level
         }
-        $this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
+      //$this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_EXIT, $tag, '');
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -282,7 +286,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             default:
                 $attr = '';
         }
-        $this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
+      //$this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_ENTER, $tag, $attr);
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -291,7 +297,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
     private function _closeItem($m, $pos, $match, $handler)
     {
         $tag = $m['item'];
-        $this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
+      //$this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_EXIT, $tag, '');
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -313,7 +321,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
                 $tag = 'div';  $attr = 'class="li"';
                 break;
         }
-        $this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
+      //$this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_ENTER, $tag, $attr);
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -335,7 +345,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
                 $tag = 'div';
                 break;
         }
-        $this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
+      //$this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_EXIT, $tag, '');
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -343,7 +355,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
      */
     private function _openParagraph($pos, $match, $handler)
     {
-        $this->_writeCall('p','',DOKU_LEXER_ENTER, $pos,$match,$handler);
+      //$this->_writeCall('p','',DOKU_LEXER_ENTER, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_ENTER, 'p', '');
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -351,7 +365,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
      */
     private function _closeParagraph($pos, $match, $handler)
     {
-        $this->_writeCall('p','',DOKU_LEXER_EXIT, $pos,$match,$handler);
+      //$this->_writeCall('p','',DOKU_LEXER_EXIT, $pos,$match,$handler);
+        $match = array(DOKU_LEXER_EXIT, 'p', '');
+        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
@@ -360,6 +376,11 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
     public function handle($match, $state, $pos, Doku_Handler $handler)
     {
         switch ($state) {
+        case 'addPluginCall':
+            // write plugin instruction to call list of the handler
+            // Note: $match is array, not matched text
+            return $data = $match;
+
         case DOKU_LEXER_SPECIAL:
             //  specify class attribute for lists [ul|ol|dl]
             $this->storeListClass($match);
