@@ -219,7 +219,9 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
     protected function _writeCall($tag, $attr, $state, $pos, $match, $handler)
     {
         $handler->addPluginCall($this->getPluginName(),
-            array($state, $tag, $attr), $state, $pos, $match);
+            array($state, $tag, $attr), $state, $pos, $match
+        );
+        
     }
 
     /**
@@ -501,7 +503,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             array_push($this->stack, $m1);
 
         } // end of switch
-        return true;
+        return false;
     }
 
 
