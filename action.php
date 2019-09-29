@@ -8,20 +8,21 @@
  */
 if (!defined('DOKU_INC')) die();
 
-class action_plugin_extlist extends DokuWiki_Action_Plugin {
-
+class action_plugin_extlist extends DokuWiki_Action_Plugin
+{
     /**
      * register the event handlers
      */
-    public function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, '_prepareCssFile');
+    public function register(Doku_Event_Handler $controller)
+    {
+        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, 'prepareCssFile');
     }
 
     /**
      * Prepare plugin stylesheet file
      */
-    public function _prepareCssFile(Doku_Event $event) {
-
+    public function prepareCssFile(Doku_Event $event)
+    {
         if ($this->getConf('use_plugin_css')) {
             $f0 = dirname(__FILE__).'/sample.less';
             $f1 = dirname(__FILE__).'/all.less';
@@ -33,7 +34,5 @@ class action_plugin_extlist extends DokuWiki_Action_Plugin {
             if (@file_exists($f)) { @unlink($f); }
         }
     }
-
-
 
 }
