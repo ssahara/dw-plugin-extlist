@@ -8,9 +8,29 @@
  */
 if (!defined('DOKU_INC')) die();
 
-class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
+class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
+{
+    public function getType()
+    {   // Syntax Type
+        return 'container';
+    }
 
-    protected $mode;
+    public function getAllowedTypes()
+    {   // Allowed Mode Types
+        return array(
+            'formatting',
+            'substition',
+            'disabled',
+            'protected',
+        );
+    }
+
+    public function getPType()
+    {   // Paragraph Type
+        return 'block';
+    }
+
+
     protected $stack = array();
     protected $list_class = array(); // store class specified by macro
 
@@ -20,11 +40,19 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
 
     protected $use_div = true;
 
-    protected $entry_pattern, $match_pattern, $extra_pattern, $exit_pattern;
-    protected $macro_pattern;
 
-    public function __construct() {
-        $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
+
+    /**
+     * Connect pattern to lexer
+     */
+    protected $mode;
+    protected $macro_pattern;
+    protected $entry_pattern, $match_pattern, $extra_pattern, $exit_pattern;
+
+    public function preConnect()
+    {
+        // drop 'syntax_' from class name
+        $this->mode = substr(get_class($this), 7);
 
         // macro to specify list class
         $this->macro_pattern = '\n(?: {2,}|\t{1,})~~(?:dl|ol|ul):[\w -]*?~~';
@@ -51,17 +79,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
         $this->exit_pattern  = '\n';
     }
 
-    function getType() { return 'container'; }
-    function getSort() { return 9; } // just before listblock (10)
-    function getPType() { return 'block'; }
-    function getAllowedTypes() {
-        return array('formatting', 'substition', 'disabled', 'protected');
-    }
-
-    /**
-     * Connect pattern to lexer
-     */
-    function connectTo($mode) {
+    public function connectTo($mode)
+    {
         $this->Lexer->addEntryPattern('[ \t]*'.$this->entry_pattern, $mode, $this->mode);
 
         // macro syntax to specify class for next list [ul|ol|dl]
@@ -69,7 +88,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addPattern($this->macro_pattern, $this->mode);
     }
 
-    function postConnect() {
+    public function postConnect()
+    {
         // subsequent list item
         $this->Lexer->addPattern($this->match_pattern, $this->mode);
         $this->Lexer->addPattern('  ::? ', $this->mode);  // dt and dd in one line
@@ -81,13 +101,19 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addExitPattern($this->exit_pattern, $this->mode);
     }
 
+    public function getSort()
+    {   // sort number used to determine priority of this mode
+        return 9; // just before listblock (10)
+    }
+
     /**
      * get markup and depth from the match
      *
      * @param $match string 
      * @return array
      */
-    protected function interpret($match) {
+    protected function interpret($match)
+    {
         // depth: count double spaces indent after '\n'
         $depth = substr_count(str_replace("\t", '  ', ltrim($match,' ')),'  ');
         $match = trim($match);
@@ -142,15 +168,16 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * check whether list type has changed
      */
-    private function isListTypeChanged($m0, $m1) {
+    private function isListTypeChanged($m0, $m1)
+    {
         return (strncmp($m0['list'], $m1['list'], 1) !== 0);
     }
 
     /**
      * create marker for ordered list items
      */
-    private function olist_marker($level) {
-
+    private function olist_marker($level)
+    {
         $num = $this->olist_info[$level];
         //error_log('olist lv='.$level.' list_class='.$this->list_class['ol'].' num='.$num);
 
@@ -177,7 +204,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
      * srore class attribute for lists [ul|ol|dl] specfied by macro pattern
      * macro_pattern = ~~(?:dl|ol|ul):[\w -]*?~~
      */
-    private function storeListClass($str) {
+    private function storeListClass($str)
+    {
             $str = trim($str);
             $this->list_class[substr($str,2,2)] = trim(substr($str,5,-2));
     }
@@ -188,7 +216,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
      * first three arguments are passed to function render as $data
      * Note: this function was used in the DW exttab3 plugin.
      */
-    protected function _writeCall($tag, $attr, $state, $pos, $match, $handler) {
+    protected function _writeCall($tag, $attr, $state, $pos, $match, $handler)
+    {
         $handler->addPluginCall($this->getPluginName(),
             array($state, $tag, $attr), $state, $pos, $match);
     }
@@ -196,7 +225,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to open a list block [ul|ol|dl]
      */
-    private function _openList($m, $pos, $match, $handler) {
+    private function _openList($m, $pos, $match, $handler)
+    {
         $tag = $m['list'];
         // start value only for ordered list
         if ($tag == 'ol') {
@@ -220,7 +250,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to close a list block [ul|ol|dl]
      */
-    private function _closeList($m, $pos, $match, $handler) {
+    private function _closeList($m, $pos, $match, $handler)
+    {
         $tag = $m['list'];
         if ($tag == 'ol') {
             $this->olist_level--; // reduce olist level
@@ -231,7 +262,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to open a list item [li|dt|dd]
      */
-    private function _openItem($m, $pos, $match, $handler) {
+    private function _openItem($m, $pos, $match, $handler)
+    {
         $tag = $m['item'];
         switch ($m['mk']) {
             case '-':
@@ -254,7 +286,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to close a list item [li|dt|dd]
      */
-    private function _closeItem($m, $pos, $match, $handler) {
+    private function _closeItem($m, $pos, $match, $handler)
+    {
         $tag = $m['item'];
         $this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
     }
@@ -262,7 +295,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to open inner wrapper [div|span]
      */
-    private function _openWrapper($m, $pos, $match, $handler) {
+    private function _openWrapper($m, $pos, $match, $handler)
+    {
         switch ($m['mk']) {
             case ';':  // dl dt
             case ';;': // dl dt, explicitly no-compact
@@ -283,7 +317,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to close inner wrapper [div|span]
      */
-    private function _closeWrapper($m, $pos, $match, $handler) {
+    private function _closeWrapper($m, $pos, $match, $handler)
+    {
         switch ($m['mk']) {
             case ';':  // dl dt
             case ';;': // dl dt, explicitly no-compact
@@ -304,22 +339,24 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * write call to open paragraph (p tag)
      */
-    private function _openParagraph($pos, $match, $handler) {
+    private function _openParagraph($pos, $match, $handler)
+    {
         $this->_writeCall('p','',DOKU_LEXER_ENTER, $pos,$match,$handler);
     }
 
     /**
      * write call to close paragraph (p tag)
      */
-    private function _closeParagraph($pos, $match, $handler) {
+    private function _closeParagraph($pos, $match, $handler)
+    {
         $this->_writeCall('p','',DOKU_LEXER_EXIT, $pos,$match,$handler);
     }
 
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, Doku_Handler $handler) {
-
+    public function handle($match, $state, $pos, Doku_Handler $handler)
+    {
         switch ($state) {
         case DOKU_LEXER_SPECIAL:
             //  specify class attribute for lists [ul|ol|dl]
@@ -471,7 +508,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * Create output
      */
-    function render($format, Doku_Renderer $renderer, $data) {
+    public function render($format, Doku_Renderer $renderer, $data)
+    {
         switch ($format) {
             case 'xhtml':
                 return $this->render_xhtml($renderer, $data);
@@ -490,8 +528,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * Create xhtml output
      */
-    protected function render_xhtml(Doku_Renderer $renderer, $data) {
-
+    protected function render_xhtml(Doku_Renderer $renderer, $data)
+    {
         list($state, $tag, $attr) = $data;
         switch ($state) {
             case DOKU_LEXER_ENTER:   // open tag
@@ -505,12 +543,14 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
                 $renderer->doc.= $this->_close($tag);
                 break;
         }
+        return true;
     }
 
     /**
      * open a tag, a utility for render_xhtml()
      */
-    protected function _open($tag, $attr=NULL) {
+    protected function _open($tag, $attr = null)
+    {
         if (!empty($attr)) $attr = ' '.$attr;
         list($before, $after) = $this->_tag_indent($tag);
         return $before.'<'.$tag.$attr.'>'.$after;
@@ -519,7 +559,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
     /**
      * close a tag, a utility for render_xhtml()
      */
-    protected function _close($tag) {
+    protected function _close($tag)
+    {
         list($before, $after) = $this->_tag_indent('/'.$tag);
         return $before.'</'.$tag.'>'.$after;
     }
@@ -530,7 +571,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin {
      * @param string $tag tag name
      * @return array
      */
-    private function _tag_indent($tag) {
+    private function _tag_indent($tag)
+    {
         // prefix and surffix of html tags
         $indent = array(
             'ol' => array("\n","\n"),  '/ol' => array("","\n"),
