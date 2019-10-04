@@ -30,18 +30,6 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         return 'block';
     }
 
-
-    protected $stack = array();
-    protected $list_class = array(); // store class specified by macro
-
-    // Enable hierarchical numbering for nested ordered lists
-    protected $olist_level = 0;
-    protected $olist_info = array();
-
-    protected $use_div = true;
-
-
-
     /**
      * Connect pattern to lexer
      */
@@ -106,6 +94,25 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         return 9; // just before listblock (10)
     }
 
+
+    /**
+     * Plugin features
+     */
+    protected $stack = array();
+    protected $list_class = array(); // store class specified by macro
+
+    // Enable hierarchical numbering for nested ordered lists
+    protected $olist_level = 0;
+    protected $olist_info = array();
+
+    protected $use_div = true;
+
+    protected $state_map = array(
+        'open'  => DOKU_LEXER_ENTER,
+        'close' => DOKU_LEXER_EXIT,
+    );
+
+
     /**
      * get markup and depth from the match
      *
@@ -167,6 +174,10 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
 
     /**
      * check whether list type has changed
+     *
+     * @param $m0 array  interpreted match pattern of previous list item
+     * @param $m1 array  interpreted match pattern of current list item
+     * @return bool
      */
     private function isListTypeChanged($m0, $m1)
     {
@@ -175,6 +186,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
 
     /**
      * create marker for ordered list items
+     * 
+     * @return string
      */
     private function olist_marker($level)
     {
@@ -212,129 +225,93 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
 
 
     /**
-     * helper function to simplify writing plugin calls to the instruction list
-     * first three arguments are passed to function render as $data
-     * Note: this function was used in the DW exttab3 plugin.
+     * write call to open or close a list block [ul|ol|dl]
      */
-    protected function _writeCall($tag, $attr, $state, $pos, $match, $handler)
+    private function handleList($state, $m, $pos, Doku_Handler $handler)
     {
-        $handler->addPluginCall($this->getPluginName(),
-            array($state, $tag, $attr), $state, $pos, $match
-        );
-        
-    }
-
-    /**
-     * write call to open a list block [ul|ol|dl]
-     */
-    private function _openList($m, $pos, $match, $handler)
-    {
-        $tag = $m['list'];
-        // start value only for ordered list
-        if ($tag == 'ol') {
-            $attr = isset($m['num']) ? 'start="'.$m['num'].'"' : '';
-            $this->olist_level++; // increase olist level
-        }
-        // list class
-        $class = 'extlist';
-        if (isset($this->list_class[$tag])) {
-            // Note: list_class can be empty
-            $class.= ' '.$this->list_class[$tag];
+        if (array_key_exists($state, $this->state_map)) {
+            $state = $this->state_map[$state];
         } else {
-            $class.= ' '.$this->getConf($tag.'_class');
+            return;
         }
-        $class = rtrim($class);
-        $attr.= !empty($attr) ? ' ' : '';
-        $attr.= ' class="'.$class.'"';
-      //$this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_ENTER, $tag, $attr);
-        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
-    }
-
-    /**
-     * write call to close a list block [ul|ol|dl]
-     */
-    private function _closeList($m, $pos, $match, $handler)
-    {
         $tag = $m['list'];
-        if ($tag == 'ol') {
-            $this->olist_level--; // reduce olist level
+
+        if ($state == DOKU_LEXER_ENTER) {
+            // start value only for ordered list
+            if ($tag == 'ol') {
+                $attr = isset($m['num']) ? 'start="'.$m['num'].'"' : '';
+                $this->olist_level++; // increase olist level
+            }
+            // list class
+            $class = 'extlist';
+            if (isset($this->list_class[$tag])) {
+                // Note: list_class can be empty
+                $class.= ' '.$this->list_class[$tag];
+            } else {
+                $class.= ' '.$this->getConf($tag.'_class');
+            }
+            $class = rtrim($class);
+            $attr.= !empty($attr) ? ' ' : '';
+            $attr.= ' class="'.$class.'"';
+        } else {
+            if ($tag == 'ol') {
+                $this->olist_level--; // reduce olist level
+            }
+            $attr = '';
         }
-      //$this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_EXIT, $tag, '');
+        $match = array($state, $tag, $attr);
         $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
-     * write call to open a list item [li|dt|dd]
+     * write call to open or close a list item [li|dt|dd]
      */
-    private function _openItem($m, $pos, $match, $handler)
+    private function handleItem($state, $m, $pos, Doku_Handler $handler)
     {
+        if (array_key_exists($state, $this->state_map)) {
+            $state = $this->state_map[$state];
+        } else {
+            return;
+        }
         $tag = $m['item'];
-        switch ($m['mk']) {
-            case '-':
-            case '-:':
-                // prepare hierarchical marker for nested ordered list item
-                $this->olist_info[$this->olist_level] = $m['num'];
-                $lv = $this->olist_level;
-                $attr = ' value="'.$m['num'].'"';
-                $attr.= ' data-marker="'.$this->olist_marker($lv).'"';
-                break;
-            case ';':
-                $attr = 'class="'.$m['class'].'"';
-                break;
-            default:
-                $attr = '';
+        if ($state == DOKU_LEXER_ENTER) {
+            switch ($m['mk']) {
+                case '-':
+                case '-:':
+                    // prepare hierarchical marker for nested ordered list item
+                    $this->olist_info[$this->olist_level] = $m['num'];
+                    $lv = $this->olist_level;
+                    $attr = ' value="'.$m['num'].'"';
+                    $attr.= ' data-marker="'.$this->olist_marker($lv).'"';
+                    break;
+                case ';':
+                    $attr = 'class="'.$m['class'].'"';
+                    break;
+                default:
+                    $attr = '';
+            }
+        } else {
+            $attr = '';
         }
-      //$this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_ENTER, $tag, $attr);
+        $match = array($state, $tag, $attr);
         $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
-     * write call to close a list item [li|dt|dd]
+     * write call to open or close inner wrapper [div|span]
      */
-    private function _closeItem($m, $pos, $match, $handler)
+    private function handleWrapper($state, $m, $pos, Doku_Handler $handler)
     {
-        $tag = $m['item'];
-      //$this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_EXIT, $tag, '');
-        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
-    }
-
-    /**
-     * write call to open inner wrapper [div|span]
-     */
-    private function _openWrapper($m, $pos, $match, $handler)
-    {
-        switch ($m['mk']) {
-            case ';':  // dl dt
-            case ';;': // dl dt, explicitly no-compact
-                $tag = 'span'; $attr = '';
-                break;
-            case ':':  // dl dd
-            case '::': // dl dd p
-                return;
-                break;
-            default:
-                if (!$this->use_div) return;
-                $tag = 'div';  $attr = 'class="li"';
-                break;
+        if (array_key_exists($state, $this->state_map)) {
+            $state = $this->state_map[$state];
+        } else {
+            return;
         }
-      //$this->_writeCall($tag,$attr,DOKU_LEXER_ENTER, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_ENTER, $tag, $attr);
-        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
-    }
-
-    /**
-     * write call to close inner wrapper [div|span]
-     */
-    private function _closeWrapper($m, $pos, $match, $handler)
-    {
         switch ($m['mk']) {
             case ';':  // dl dt
             case ';;': // dl dt, explicitly no-compact
                 $tag = 'span';
+                $attr = '';
                 break;
             case ':':  // dl dd
             case '::': // dl dd p
@@ -343,30 +320,24 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             default:
                 if (!$this->use_div) return;
                 $tag = 'div';
+                $attr = ($state == DOKU_LEXER_ENTER) ? 'class="li"' : '';
                 break;
         }
-      //$this->_writeCall($tag,'',DOKU_LEXER_EXIT, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_EXIT, $tag, '');
+        $match = array($state, $tag, $attr);
         $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
     /**
-     * write call to open paragraph (p tag)
+     * write call to open or close paragraph (p tag)
      */
-    private function _openParagraph($pos, $match, $handler)
+    private function handleParagraph($state, $pos, Doku_Handler $handler)
     {
-      //$this->_writeCall('p','',DOKU_LEXER_ENTER, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_ENTER, 'p', '');
-        $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
-    }
-
-    /**
-     * write call to close paragraph (p tag)
-     */
-    private function _closeParagraph($pos, $match, $handler)
-    {
-      //$this->_writeCall('p','',DOKU_LEXER_EXIT, $pos,$match,$handler);
-        $match = array(DOKU_LEXER_EXIT, 'p', '');
+        if (array_key_exists($state, $this->state_map)) {
+            $state = $this->state_map[$state];
+        } else {
+            return;
+        }
+        $match = array($state, 'p', '');
         $handler->plugin($match, 'addPluginCall', $pos, $this->getPluginName());
     }
 
@@ -393,13 +364,13 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             }
  
             // open list tag [ul|ol|dl]
-            $this->_openList($m1, $pos,$match,$handler);
+            $this->handleList('open', $m1, $pos, $handler);
             // open item tag [li|dt|dd]
-            $this->_openItem($m1, $pos,$match,$handler);
+            $this->handleItem('open', $m1, $pos, $handler);
             // open inner wrapper [div|span]
-            $this->_openWrapper($m1, $pos,$match,$handler);
+            $this->handleWrapper('open', $m1, $pos, $handler);
             // open p if necessary
-            if (isset($m1['p'])) $this->_openParagraph($pos,$match,$handler);
+            if (isset($m1['p'])) $this->handleParagraph('open', $pos, $handler);
 
             // add to stack
             array_push($this->stack, $m1);
@@ -443,13 +414,13 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             }
 
             // close p if necessary
-            if (isset($m0['p'])) $this->_closeParagraph($pos,$match,$handler);
+            if (isset($m0['p'])) $this->handleParagraph('close', $pos, $handler);
 
             // close inner wrapper [div|span] if necessary
             if ($m1['mk'] == '+:') {
                 // Paragraph markup
                 if ($m0['depth'] > $m1['depth']) {
-                    $this->_closeWrapper($m0, $pos,$match,$handler);
+                    $this->handleWrapper('close', $m0, $pos, $handler);
                 } else {
                     // new paragraph can not be deeper than previous depth
                     // fix current depth quietly
@@ -460,16 +431,16 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             } else {
                 // List item markup
                 if ($m0['depth'] >= $m1['depth']) {
-                    $this->_closeWrapper($m0, $pos,$match,$handler);
+                    $this->handleWrapper('close', $m0, $pos, $handler);
                 }
             }
 
             // List item becomes shallower - close deeper list
             while ($m0['depth'] > $m1['depth']) {
                 // close item [li|dt|dd]
-                $this->_closeItem($m0, $pos,$match,$handler);
+                $this->handleItem('close', $m0, $pos, $handler);
                 // close list [ul|ol|dl]
-                $this->_closeList($m0, $pos,$match,$handler);
+                $this->handleList('close', $m0, $pos, $handler);
 
                 $m0 = array_pop($this->stack);
             }
@@ -481,7 +452,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
 
             // Paragraph markup
             if ($m1['mk'] == '+:') {
-                $this->_openParagraph($pos,$match,$handler);
+                $this->handleParagraph('open', $pos, $handler);
                 $m1['depth'] = $m0['depth'];
                 $m1 = $m0 + array('p' => 1);
 
@@ -497,10 +468,10 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
 
             } else if ($m0['depth'] == $m1['depth']) {
                 // close item [li|dt|dd]
-                $this->_closeItem($m0, $pos,$match,$handler);
+                $this->handleItem('close', $m0, $pos, $handler);
                 // close list [ul|ol|dl] if necessary
                 if ($this->isListTypeChanged($m0, $m1)) {
-                    $this->_closeList($m0, $pos,$match,$handler);
+                    $this->handleList('close', $m0, $pos, $handler);
                     $m0['num'] = 0;
                 }
             }
@@ -508,17 +479,17 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             // open list [ul|ol|dl] if necessary
             if (($m0['depth'] < $m1['depth']) || ($m0['num'] === 0)) {
                 if (!is_numeric($m1['num'])) $m1['num'] = 1;
-                $this->_openList($m1, $pos,$match,$handler);
+                $this->handleList('open', $m1, $pos, $handler);
             } else {
                 if (!is_numeric($m1['num'])) $m1['num'] = $m0['num']  +1;
             }
 
             // open item [li|dt|dd]
-            $this->_openItem($m1, $pos,$match,$handler);
+            $this->handleItem('open', $m1, $pos, $handler);
             // open inner wrapper [div|span]
-            $this->_openWrapper($m1, $pos,$match,$handler);
+            $this->handleWrapper('open', $m1, $pos, $handler);
             // open p if necessary
-            if (isset($m1['p'])) $this->_openParagraph($pos,$match,$handler);
+            if (isset($m1['p'])) $this->handleParagraph('open', $pos, $handler);
 
             // add to stack
             array_push($this->stack, $m1);
@@ -558,13 +529,12 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             case DOKU_LEXER_ENTER:   // open tag
                 $renderer->doc.= $this->_open($tag, $attr);
                 break;
-            case DOKU_LEXER_MATCHED: // defensive, shouldn't occur
-            case DOKU_LEXER_UNMATCHED:
-                $renderer->cdata($tag);
-                break;
             case DOKU_LEXER_EXIT:    // close tag
                 $renderer->doc.= $this->_close($tag);
                 break;
+            default:
+                // defensive, shouldn't occur
+                return false;
         }
         return true;
     }
