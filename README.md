@@ -40,4 +40,4 @@ You may write longer list items in consecutive indented lines of text:
 ----
 Licensed under the GNU Public License (GPL) version 2
 
-(c) 2015-2017 Satoshi Sahara \<sahara.satoshi@gmail.com>
+(c) 2015-2019 Satoshi Sahara \<sahara.satoshi@gmail.com>
