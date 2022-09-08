@@ -568,6 +568,23 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
     }
 
     /**
+     * prefix and suffix of html tags
+     *
+     * Initialize this array only once instead of each time the method _tag_indent()
+     * is called.
+     */
+    protected $indent = [
+            'ol'  => [NL,NL],   '/ol'  => ['',NL],
+            'ul'  => [NL,NL],   '/ul'  => ['',NL],
+            'dl'  => [NL,NL],   '/dl'  => ['',NL],
+            'li'  => ['  ',''], '/li'  => ['',NL],
+            'dt'  => ['  ',''], '/dt'  => ['',NL],
+            'dd'  => ['  ',NL], '/dd'  => ['',NL],
+            'p'   => [NL,''],   '/p'   => ['',NL],
+            'div' => [NL,''],   '/div' => ['',NL],
+        ];
+
+    /**
      * indent tags for readability if HTML source
      *
      * @param string $tag tag name
@@ -575,17 +592,10 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
      */
     private function _tag_indent($tag)
     {
-        // prefix and surffix of html tags
-        $indent = array(
-            'ol' => array("\n","\n"),  '/ol' => array("","\n"),
-            'ul' => array("\n","\n"),  '/ul' => array("","\n"),
-            'dl' => array("\n","\n"),  '/dl' => array("","\n"),
-            'li' => array("  ",""),    '/li' => array("","\n"),
-            'dt' => array("  ",""),    '/dt' => array("","\n"),
-            'dd' => array("  ","\n"),  '/dd' => array("","\n"),
-            'p'  => array("\n",""),    '/p'  => array("","\n"),
-        );
-        return $indent[$tag];
+        if (array_key_exists($tag, $this->indent))
+            return $this->indent[$tag];
+
+        return ['',''];
     }
 
 }
