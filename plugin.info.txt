@@ -1,7 +1,7 @@
 base    extlist
 author  Satoshi Sahara
 email   sahara.satoshi@gmail.com
-date    2016-07-26
+date    2023-08-22
 name    Extended List syntax
 desc    Extend writing style of lists: a) treat consecutive indented lines of text as one list item, b) ordered list with starting number, c) description list as well as ordered/unordered list.
 url     https://www.dokuwiki.org/plugin:extlist
