@@ -130,7 +130,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         } else {
             $m += array('mk' => $match);
 
-            switch ($match[0]) {
+            switch (substr($match, 0, 1)) {
                 case '' :
                     $m += array('list' => NULL, 'item' => NULL);
                     break;
@@ -234,6 +234,8 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         if ($tag == 'ol') {
             $attr = isset($m['num']) ? 'start="'.$m['num'].'"' : '';
             $this->olist_level++; // increase olist level
+        } else {
+            $attr = null;
         }
         // list class
         $class = 'extlist';
@@ -444,7 +446,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             }
 
             // List item becomes shallower - close deeper list
-            while ($m0['depth'] > $m1['depth']) {
+            while (isset($m0['depth']) && ($m0['depth'] > $m1['depth'])) {
                 // close item [li|dt|dd]
                 $this->_closeItem($m0, $pos,$match,$handler);
                 // close list [ul|ol|dl]
@@ -485,11 +487,11 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             }
 
             // open list [ul|ol|dl] if necessary
-            if (($m0['depth'] < $m1['depth']) || ($m0['num'] === 0)) {
-                if (!is_numeric($m1['num'])) $m1['num'] = 1;
+            if (($m0['depth'] < $m1['depth']) || (isset($m0['num']) && ($m0['num'] === 0))) {
+                if (isset($m1['num']) && !is_numeric($m1['num'])) $m1['num'] = 1;
                 $this->_openList($m1, $pos,$match,$handler);
             } else {
-                if (!is_numeric($m1['num'])) $m1['num'] = $m0['num']  +1;
+                if (isset($m1['num']) && !is_numeric($m1['num'])) $m1['num'] = $m0['num']  +1;
             }
 
             // open item [li|dt|dd]
@@ -568,6 +570,23 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
     }
 
     /**
+     * prefix and suffix of html tags
+     *
+     * Initialize this array only once instead of each time the method _tag_indent()
+     * is called.
+     */
+    protected $indent = [
+            'ol'  => [NL,NL],   '/ol'  => ['',NL],
+            'ul'  => [NL,NL],   '/ul'  => ['',NL],
+            'dl'  => [NL,NL],   '/dl'  => ['',NL],
+            'li'  => ['  ',''], '/li'  => ['',NL],
+            'dt'  => ['  ',''], '/dt'  => ['',NL],
+            'dd'  => ['  ',NL], '/dd'  => ['',NL],
+            'p'   => [NL,''],   '/p'   => ['',NL],
+            'div' => [NL,''],   '/div' => ['',NL],
+        ];
+
+    /**
      * indent tags for readability if HTML source
      *
      * @param string $tag tag name
@@ -575,17 +594,10 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
      */
     private function _tag_indent($tag)
     {
-        // prefix and surffix of html tags
-        $indent = array(
-            'ol' => array("\n","\n"),  '/ol' => array("","\n"),
-            'ul' => array("\n","\n"),  '/ul' => array("","\n"),
-            'dl' => array("\n","\n"),  '/dl' => array("","\n"),
-            'li' => array("  ",""),    '/li' => array("","\n"),
-            'dt' => array("  ",""),    '/dt' => array("","\n"),
-            'dd' => array("  ","\n"),  '/dd' => array("","\n"),
-            'p'  => array("\n",""),    '/p'  => array("","\n"),
-        );
-        return $indent[$tag];
+        if (array_key_exists($tag, $this->indent))
+            return $this->indent[$tag];
+
+        return ['',''];
     }
 
 }
