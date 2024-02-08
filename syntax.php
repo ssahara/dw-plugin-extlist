@@ -182,7 +182,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
         //error_log('olist lv='.$level.' list_class='.$this->list_class['ol'].' num='.$num);
 
         // Parenthesized latin small letter marker: ⒜,⒝,⒞, … ,⒵
-        if (strpos($this->list_class['ol'], 'alphabet') !== false){
+        if (strpos($this->list_class['ol'] ?? '', 'alphabet') !== false){
             $modulus = ($num -1) % 26;
             $marker = '&#'.(9372 + $modulus).';';
             return $marker;
@@ -273,6 +273,7 @@ class syntax_plugin_extlist extends DokuWiki_Syntax_Plugin
             case '-':
             case '-:':
                 // prepare hierarchical marker for nested ordered list item
+                $m['num'] ??= '';
                 $this->olist_info[$this->olist_level] = $m['num'];
                 $lv = $this->olist_level;
                 $attr = ' value="'.$m['num'].'"';
